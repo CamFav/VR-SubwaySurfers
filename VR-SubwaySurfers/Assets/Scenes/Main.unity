@@ -1546,7 +1546,7 @@ MonoBehaviour:
   - {fileID: 8637113588372151154, guid: 304a7a31ae70013499f64c21322a9c17, type: 3}
   worldRoot: {fileID: 1204681066}
   chunkLength: 20
-  chunksOnScreen: 5
+  chunksOnScreen: 6
   spawnZOffset: 10
   despawnDistance: -30
 --- !u!4 &1888351948

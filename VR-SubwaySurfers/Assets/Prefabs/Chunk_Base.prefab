@@ -484,7 +484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7182654255980748725}
-  - component: {fileID: 6847820955563046249}
+  - component: {fileID: -5081114074892421670}
   m_Layer: 0
   m_Name: Chunk_Base
   m_TagString: Untagged
@@ -510,7 +510,7 @@ Transform:
   - {fileID: 1814947279427470731}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6847820955563046249
+--- !u!114 &-5081114074892421670
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -522,5 +522,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 307f0cea9bd576c45b3eb3510770c9ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstaclePrefab: {fileID: 6076984118692944921, guid: cf97d72a012d4c84fab269414aae0933,
+  obstacleSolidPrefab: {fileID: 2692717424534344106, guid: 12070e5de0b8c3b469264e44a3e928d3,
     type: 3}
+  obstacleJumpablePrefab: {fileID: 2692717424534344106, guid: cfa154dbdd146be42bc6376997b35ca0,
+    type: 3}
+  obstacleSlideablePrefab: {fileID: 2692717424534344106, guid: e563e8d99834d2a4c91abf52368dbcdf,
+    type: 3}
+  maxObstacles: 3
