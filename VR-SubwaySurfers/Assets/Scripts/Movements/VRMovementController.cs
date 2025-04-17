@@ -14,7 +14,7 @@ public class VRMovementController : MonoBehaviour
     public Transform rightHand;
 
     [Header("Lane Movement")]
-    public float lineDistance = 1.5f; // Distance between lanes
+    public float lineDistance = 2.5f; // Distance between lanes (correspond à -2.5 / 0 / +2.5)
     public float swipeThreshold = 1.0f; // Threshold for swipe detection
     public float gestureCooldown = 0.4f; // Cooldown time between gestures
     private int currentLine = 1; // 0 = left, 1 = center, 2 = right
@@ -60,6 +60,7 @@ public class VRMovementController : MonoBehaviour
         Vector3 leftVelocity = (leftHand.position - lastLeftHandPos) / Time.deltaTime;
         Vector3 rightVelocity = (rightHand.position - lastRightHandPos) / Time.deltaTime;
 
+        // Move left if not already in leftmost lane
         if (leftVelocity.x < -swipeThreshold && currentLine > 0)
         {
             currentLine--;
@@ -67,6 +68,7 @@ public class VRMovementController : MonoBehaviour
             lastGestureTime = Time.time;
             Debug.Log("Left swipe detected");
         }
+        // Move right if not already in rightmost lane
         else if (rightVelocity.x > swipeThreshold && currentLine < 2)
         {
             currentLine++;
@@ -84,6 +86,7 @@ public class VRMovementController : MonoBehaviour
         Vector3 leftVel = (leftHand.position - lastLeftHandPos) / Time.deltaTime;
         Vector3 rightVel = (rightHand.position - lastRightHandPos) / Time.deltaTime;
 
+        // Trigger jump only if both hands move up fast
         if (leftVel.y > jumpSpeedThreshold && rightVel.y > jumpSpeedThreshold)
         {
             StartCoroutine(JumpRoutine());
@@ -97,22 +100,24 @@ public class VRMovementController : MonoBehaviour
     {
         float headY = headTransform.localPosition.y;
 
+        // Trigger slide if head goes below threshold and not already sliding
         if (!isSliding && headY < slideThreshold && Time.time - lastSlideTime > slideCooldown)
         {
             isSliding = true;
             lastSlideTime = Time.time;
             Debug.Log("Slide detected");
         }
+        // Reset slide if head returns above threshold
         else if (headY > slideThreshold + 0.2f && isSliding)
         {
             isSliding = false;
         }
     }
 
-    // Moves player to the specified lane
+    // Moves player to the specified lane (-2.5, 0, or +2.5)
     void MoveToLine(int line)
     {
-        float targetX = (line - 1) * lineDistance;
+        float targetX = (line - 1) * lineDistance; // Left = -2.5, Center = 0, Right = +2.5
         Vector3 newPos = new Vector3(targetX, transform.position.y, transform.position.z);
         transform.position = newPos;
     }
@@ -125,7 +130,7 @@ public class VRMovementController : MonoBehaviour
         Vector3 targetPos = startPos + Vector3.up * jumpHeight;
 
         float elapsed = 0f;
-    
+
         // Jump up
         while (elapsed < jumpDuration)
         {
@@ -137,6 +142,7 @@ public class VRMovementController : MonoBehaviour
         transform.position = targetPos;
         yield return new WaitForSeconds(0.1f);
 
+        // Fall down
         elapsed = 0f;
         while (elapsed < jumpDuration)
         {
