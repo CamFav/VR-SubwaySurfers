@@ -26,13 +26,13 @@ public class VRMovementController : MonoBehaviour
     public float jumpHeight = 0.3f;
     public float jumpDuration = 0.3f;
     private float lastJumpTime; // Last time jump was detected
-    private bool isJumping = false;
+    public static bool isJumping = false;
 
     [Header("Slide")]
     public float slideThreshold = 1.0f; // Threshold for slide detection
     public float slideCooldown = 1.0f;
     private float lastSlideTime; // Last time slide was detected
-    private bool isSliding = false;
+    public static bool isSliding = false;
 
     private Vector3 lastLeftHandPos;
     private Vector3 lastRightHandPos;

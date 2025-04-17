@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1899410845885843998}
   m_Layer: 6
   m_Name: Obstacle_Jumpable
-  m_TagString: Untagged
+  m_TagString: ObstacleJumpable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
