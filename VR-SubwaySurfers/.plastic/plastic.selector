@@ -1,0 +1,4 @@
+repository "VR-SubwaySurfers@Meashy@cloud"
+  path "/"
+    br "/main"
+    co "/main"
