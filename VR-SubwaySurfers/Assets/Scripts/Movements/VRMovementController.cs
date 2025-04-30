@@ -12,6 +12,7 @@ public class VRMovementController : MonoBehaviour
     public Transform headTransform; 
     public Transform leftHand;
     public Transform rightHand;
+    private bool isEnabled = false; // Flag to check if the script is enabled
 
     [Header("Lane Movement")]
     public float lineDistance = 2.5f; // Distance between lanes (correspond à -2.5 / 0 / +2.5)
@@ -46,6 +47,7 @@ public class VRMovementController : MonoBehaviour
 
     void Update()
     {
+        if (!isEnabled) return;
         DetectLaneChange();
         DetectJump();
         DetectSlide();
@@ -160,5 +162,11 @@ public class VRMovementController : MonoBehaviour
     {
         lastLeftHandPos = leftHand.position;
         lastRightHandPos = rightHand.position;
+    }
+
+    // Enable movement when game starts
+    public void EnableMovement()
+    {
+        isEnabled = true;
     }
 }

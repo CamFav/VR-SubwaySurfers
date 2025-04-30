@@ -15,7 +15,7 @@ public class ChunkSpawner : MonoBehaviour
     [Header("Settings")]
     public float chunkLength = 20f;       // Z-axis length of each chunk
     public int chunksOnScreen = 5;        // Number of visible chunks
-    public float spawnZOffset = 10f;      // Initial spawn position offset
+    public float spawnZOffset = 40f;      // Initial spawn position offset
     public float despawnDistance = -30f;  // Distance to destroy chunks behind player
 
     private float spawnZ = 0f;
@@ -25,6 +25,13 @@ public class ChunkSpawner : MonoBehaviour
     {
         // Initial spawn position
         spawnZ = spawnZOffset;
+
+        // Register the spawn chunk manually
+        GameObject spawnChunk = GameObject.Find("Chunk_Spawn_Menu");
+        if (spawnChunk != null)
+        {
+            activeChunks.Add(spawnChunk);
+        }
 
         // Generate initial visible chunks
         for (int i = 0; i < chunksOnScreen; i++)
@@ -42,6 +49,11 @@ public class ChunkSpawner : MonoBehaviour
 
             if (firstChunk.transform.position.z + chunkLength < transform.position.z + despawnDistance)
             {
+                    if (firstChunk.name.Contains("Chunk_Spawn_Menu"))
+                {
+                    // Unload the fog if the spawn menu chunk is destroyed
+                    RenderSettings.fog = false;
+                }
                 Destroy(firstChunk);
                 activeChunks.RemoveAt(0);
                 SpawnChunk(); // Add new chunk ahead

@@ -12,4 +12,10 @@ public class WorldMover : MonoBehaviour
         // Move the object backwards at the specified speed
         transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
     }
+
+    /// Sets the speed of the object movement.     
+    public void SetMoveSpeed(float newSpeed)
+    {
+        moveSpeed = newSpeed;
+    }
 }
