@@ -49,11 +49,6 @@ public class ChunkSpawner : MonoBehaviour
 
             if (firstChunk.transform.position.z + chunkLength < transform.position.z + despawnDistance)
             {
-                    if (firstChunk.name.Contains("Chunk_Spawn_Menu"))
-                {
-                    // Unload the fog if the spawn menu chunk is destroyed
-                    RenderSettings.fog = false;
-                }
                 Destroy(firstChunk);
                 activeChunks.RemoveAt(0);
                 SpawnChunk(); // Add new chunk ahead

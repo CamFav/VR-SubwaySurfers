@@ -8,6 +8,7 @@ public class GameStartManager : MonoBehaviour
     [SerializeField] private WorldMover worldMover;
     [SerializeField] private GameObject menuCanvas;
     [SerializeField] private VRMovementController movementController;
+    [SerializeField] private GameObject hudCanvas;
 
     public void OnClickPlay()
     {
@@ -15,10 +16,17 @@ public class GameStartManager : MonoBehaviour
 
         // Disable the menu canvas
         if (menuCanvas != null)
-                menuCanvas.SetActive(false);
+            menuCanvas.SetActive(false);
 
-        // Disable the movement controller
+        // Enable player movement
         if (movementController != null)
             movementController.EnableMovement();
+
+        // Show HUD
+        if (hudCanvas != null)
+            hudCanvas.SetActive(true);
+
+        // Start scoring
+        ScoreManager.Instance.StartScoring();
     }
 }
