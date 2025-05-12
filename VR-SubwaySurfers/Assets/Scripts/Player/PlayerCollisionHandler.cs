@@ -1,8 +1,7 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Restarts the scene if the player collides with an obstacle.
+/// Handles player collisions with obstacles in the game.
 /// </summary>
 public class PlayerCollisionHandler : MonoBehaviour
 {
@@ -12,23 +11,44 @@ public class PlayerCollisionHandler : MonoBehaviour
 
         if (tag == "ObstacleSolid")
         {
-            Restart();
+            Crash();
         }
         else if (tag == "ObstacleJumpable")
         {
             if (!VRMovementController.isJumping)
-                Restart();
+                Crash();
         }
         else if (tag == "ObstacleSlideable")
         {
             if (!VRMovementController.isSliding)
-                Restart();
+                Crash();
         }
     }
 
-    private void Restart()
+    private void Crash()
     {
-        Debug.Log("Collision with obstacle.");
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Debug.Log("Collision avec obstacle");
+        AudioManager.Instance.PlaySfx(AudioManager.Instance.crashSfx);
+
+        StopAllMovement();
+
+        FindObjectOfType<GameOverManager>().TriggerGameOver();
+    }
+
+    private void StopAllMovement()
+    {
+        // Stop world movement
+        var worldMover = FindObjectOfType<WorldMover>();
+        if (worldMover != null)
+            worldMover.SetMoveSpeed(0f);
+
+        var buildingMover = FindObjectOfType<WorldMoverBuildings>();
+        if (buildingMover != null)
+            buildingMover.SetMoveSpeed(0f);
+
+        // Stop player movement
+        var controller = FindObjectOfType<VRMovementController>();
+        if (controller != null)
+            controller.DisableMovement();
     }
 }

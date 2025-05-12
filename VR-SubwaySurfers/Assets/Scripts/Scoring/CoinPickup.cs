@@ -9,6 +9,7 @@ public class CoinPickup : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            AudioManager.Instance.PlaySfx(AudioManager.Instance.coinSfx);
             ScoreManager.Instance.AddCoin();
             Destroy(gameObject);
         }

@@ -1,32 +1,41 @@
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
-/// <summary>
-/// Manages the game start process, including enabling movement and disabling the menu canvas.
-/// </summary>
 public class GameStartManager : MonoBehaviour
 {
     [SerializeField] private WorldMover worldMover;
     [SerializeField] private GameObject menuCanvas;
     [SerializeField] private VRMovementController movementController;
     [SerializeField] private GameObject hudCanvas;
+    [SerializeField] private WorldMoverBuildings buildingMover;
+    
+    [Header("Ray Interaction")]
+    [SerializeField] private XRRayInteractor rightRayInteractor;
+    [SerializeField] private XRInteractorLineVisual rightRayVisual;
 
     public void OnClickPlay()
     {
-        worldMover.SetMoveSpeed(3f); // Set the speed of the world mover to 3f
+        worldMover.SetMoveSpeed(8f);
 
-        // Disable the menu canvas
         if (menuCanvas != null)
             menuCanvas.SetActive(false);
 
-        // Enable player movement
         if (movementController != null)
             movementController.EnableMovement();
 
-        // Show HUD
         if (hudCanvas != null)
             hudCanvas.SetActive(true);
 
-        // Start scoring
+        if (buildingMover != null)
+            buildingMover.SetMoveSpeed(3.5f);
+
+        if (rightRayInteractor != null)
+            rightRayInteractor.enabled = false;
+
+        if (rightRayVisual != null)
+            rightRayVisual.enabled = false;
+
         ScoreManager.Instance.StartScoring();
+        AudioManager.Instance.PlayMusic(AudioManager.Instance.gameMusic);
     }
 }

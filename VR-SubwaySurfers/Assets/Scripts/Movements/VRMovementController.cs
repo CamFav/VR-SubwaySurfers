@@ -2,45 +2,51 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// Moves the player using hand gestures.
-/// This script detects left/right swipes for lane changes,
-/// upward hand movement for jumping, and head lowering for sliding.
+/// Moves the player using hand gestures (Controller mode)
+/// or by physical body movement (Hybrid mode).
 /// </summary>
 public class VRMovementController : MonoBehaviour
 {
+    public enum LocomotionMode { Controller, Hybrid }
+    private Vector3 initialHeadPosition;
+
     [Header("XR References")]
-    public Transform headTransform; 
+    public Transform headTransform;
     public Transform leftHand;
     public Transform rightHand;
-    private bool isEnabled = false; // Flag to check if the script is enabled
 
     [Header("Lane Movement")]
-    public float lineDistance = 2.5f; // Distance between lanes (correspond à -2.5 / 0 / +2.5)
-    public float swipeThreshold = 1.0f; // Threshold for swipe detection
-    public float gestureCooldown = 0.4f; // Cooldown time between gestures
-    private int currentLine = 1; // 0 = left, 1 = center, 2 = right
-    private float lastGestureTime; // Last time a gesture was detected
+    public float lineDistance = 3.67f;
+    public float swipeThreshold = 1.3f;
+    public float gestureCooldown = 0.4f;
+    private int currentLine = 1;
+    private float lastGestureTime;
+
+    [Header("Jump/Slide Interaction")]
+    public float jumpBlockAfterSlideDuration = 1f;
+    private float lastSlideTimeForJumpBlock = -100f;
 
     [Header("Jump")]
-    public float jumpSpeedThreshold = 1.2f; // Speed threshold for jump detection
-    public float jumpCooldown = 1.0f; // Cooldown time between jumps
+    public float jumpSpeedThreshold = 1.2f;
+    public float jumpCooldown = 1.0f;
     public float jumpHeight = 0.3f;
     public float jumpDuration = 0.3f;
-    private float lastJumpTime; // Last time jump was detected
+    private float lastJumpTime;
     public static bool isJumping = false;
 
     [Header("Slide")]
-    public float slideThreshold = 1.0f; // Threshold for slide detection
+    public float slideThreshold = 1.0f;
     public float slideCooldown = 1.0f;
-    private float lastSlideTime; // Last time slide was detected
+    private float lastSlideTime;
     public static bool isSliding = false;
 
     private Vector3 lastLeftHandPos;
     private Vector3 lastRightHandPos;
+    private bool isEnabled = false;
 
     void Start()
     {
-        // Store initial hand positions
+        initialHeadPosition = headTransform.position;
         lastLeftHandPos = leftHand.position;
         lastRightHandPos = rightHand.position;
     }
@@ -48,47 +54,79 @@ public class VRMovementController : MonoBehaviour
     void Update()
     {
         if (!isEnabled) return;
-        DetectLaneChange();
+
+        LocomotionMode currentMode = (LocomotionMode)PlayerPrefs.GetInt("LocomotionMode", 0);
+
         DetectJump();
         DetectSlide();
+
+        if (currentMode == LocomotionMode.Controller)
+        {
+            HandleControllerMode();
+        }
+        else if (currentMode == LocomotionMode.Hybrid)
+        {
+            HandleHybridMode();
+        }
+
         UpdateHandPositions();
     }
 
-    // Detects left/right swipe gestures for lane change
-    void DetectLaneChange()
+    void HandleControllerMode()
     {
         if (Time.time - lastGestureTime < gestureCooldown) return;
 
         Vector3 leftVelocity = (leftHand.position - lastLeftHandPos) / Time.deltaTime;
         Vector3 rightVelocity = (rightHand.position - lastRightHandPos) / Time.deltaTime;
 
-        // Move left if not already in leftmost lane
         if (leftVelocity.x < -swipeThreshold && currentLine > 0)
         {
             currentLine--;
             MoveToLine(currentLine);
             lastGestureTime = Time.time;
-            Debug.Log("Left swipe detected");
+            Debug.Log("Swipe gauche (Controller)");
         }
-        // Move right if not already in rightmost lane
         else if (rightVelocity.x > swipeThreshold && currentLine < 2)
         {
             currentLine++;
             MoveToLine(currentLine);
             lastGestureTime = Time.time;
-            Debug.Log("Right swipe detected");
+            Debug.Log("Swipe droite (Controller)");
         }
     }
 
-    // Detects upward hand movement for jump
+    void HandleHybridMode()
+    {
+        float deltaX = headTransform.position.x - initialHeadPosition.x;
+
+        if (deltaX < -0.3f && currentLine > 0)
+        {
+            currentLine--;
+            MoveToLine(currentLine);
+            Debug.Log("Walk left detected");
+            initialHeadPosition = headTransform.position; // reset ref
+        }
+        else if (deltaX > 0.3f && currentLine < 2)
+        {
+            currentLine++;
+            MoveToLine(currentLine);
+            Debug.Log("Walk right detected");
+            initialHeadPosition = headTransform.position; // reset ref
+        }
+    }
+
+
+
     void DetectJump()
     {
         if (Time.time - lastJumpTime < jumpCooldown || isJumping) return;
 
+        // Blocage temporaire du saut juste après un slide
+        if (Time.time - lastSlideTimeForJumpBlock < jumpBlockAfterSlideDuration) return;
+
         Vector3 leftVel = (leftHand.position - lastLeftHandPos) / Time.deltaTime;
         Vector3 rightVel = (rightHand.position - lastRightHandPos) / Time.deltaTime;
 
-        // Trigger jump only if both hands move up fast
         if (leftVel.y > jumpSpeedThreshold && rightVel.y > jumpSpeedThreshold)
         {
             StartCoroutine(JumpRoutine());
@@ -97,43 +135,44 @@ public class VRMovementController : MonoBehaviour
         }
     }
 
-    // Detects head lowering for slide
+
     void DetectSlide()
     {
         float headY = headTransform.localPosition.y;
 
-        // Trigger slide if head goes below threshold and not already sliding
         if (!isSliding && headY < slideThreshold && Time.time - lastSlideTime > slideCooldown)
         {
             isSliding = true;
             lastSlideTime = Time.time;
+            lastSlideTimeForJumpBlock = Time.time;
+            AudioManager.Instance.PlaySfx(AudioManager.Instance.slideSfx);
             Debug.Log("Slide detected");
         }
-        // Reset slide if head returns above threshold
+
         else if (headY > slideThreshold + 0.2f && isSliding)
         {
             isSliding = false;
         }
     }
 
-    // Moves player to the specified lane (-2.5, 0, or +2.5)
     void MoveToLine(int line)
     {
-        float targetX = (line - 1) * lineDistance; // Left = -2.5, Center = 0, Right = +2.5
+        float targetX = (line - 1) * lineDistance;
         Vector3 newPos = new Vector3(targetX, transform.position.y, transform.position.z);
         transform.position = newPos;
+        AudioManager.Instance.PlaySfx(AudioManager.Instance.slideSfx);
     }
 
-    // Handles jump animation
     IEnumerator JumpRoutine()
     {
         isJumping = true;
+        AudioManager.Instance.PlaySfx(AudioManager.Instance.jumpSfx);
+
         Vector3 startPos = transform.position;
         Vector3 targetPos = startPos + Vector3.up * jumpHeight;
 
         float elapsed = 0f;
 
-        // Jump up
         while (elapsed < jumpDuration)
         {
             transform.position = Vector3.Lerp(startPos, targetPos, elapsed / jumpDuration);
@@ -144,7 +183,6 @@ public class VRMovementController : MonoBehaviour
         transform.position = targetPos;
         yield return new WaitForSeconds(0.1f);
 
-        // Fall down
         elapsed = 0f;
         while (elapsed < jumpDuration)
         {
@@ -157,16 +195,19 @@ public class VRMovementController : MonoBehaviour
         isJumping = false;
     }
 
-    // Updates last hand positions for velocity calculation
     void UpdateHandPositions()
     {
         lastLeftHandPos = leftHand.position;
         lastRightHandPos = rightHand.position;
     }
 
-    // Enable movement when game starts
     public void EnableMovement()
     {
         isEnabled = true;
+    }
+
+    public void DisableMovement()
+    {
+        isEnabled = false;
     }
 }

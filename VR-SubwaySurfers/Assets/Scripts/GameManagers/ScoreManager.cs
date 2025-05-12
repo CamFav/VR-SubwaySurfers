@@ -59,4 +59,15 @@ public class ScoreManager : MonoBehaviour
         if (coinsText != null)
             coinsText.text = "Coins: " + coins;
     }
+
+    public int GetScore()
+    {
+        float distance = Mathf.Abs(worldRootTransform.position.z - startZ);
+        return Mathf.FloorToInt(distance);
+    }
+
+    public int GetCoins()
+    {
+        return coins;
+    }
 }
